@@ -1,9 +1,9 @@
-import axios, { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 
 // Base URL: DEV = localhost, PROD = VITE_API_URL from environment
-const baseURL = import.meta.env.DEV
+const baseURL: string = import.meta.env.DEV
   ? "http://localhost:5000/api"
-  : import.meta.env.VITE_API_URL;
+  : (import.meta.env.VITE_API_URL as string);
 
 // Create Axios instance
 export const api = axios.create({
@@ -16,13 +16,10 @@ export const api = axios.create({
 
 // Request interceptor: attach token if exists
 api.interceptors.request.use(
-  (config: AxiosRequestConfig) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("token");
-    if (token) {
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`,
-      };
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -31,23 +28,26 @@ api.interceptors.request.use(
 
 // Response interceptor: handle 401, 403, and network errors
 api.interceptors.response.use(
-  (response) => response,
+  (response: AxiosResponse) => response,
   (error) => {
     if (!error.response) {
       console.error("Network error:", error.message);
       alert("Cannot connect to the server. Please try again later.");
-    } else if (error.response.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    } else if (error.response.status === 403) {
-      console.warn("Access denied: insufficient permissions");
+    } else {
+      const status = error.response.status;
+      if (status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      } else if (status === 403) {
+        console.warn("Access denied: insufficient permissions");
+      }
     }
     return Promise.reject(error);
   }
 );
 
 // Helper function to set or remove auth token
-export function setAuthToken(token: string | null) {
+export function setAuthToken(token: string | null): void {
   if (token) {
     localStorage.setItem("token", token);
     api.defaults.headers.common.Authorization = `Bearer ${token}`;

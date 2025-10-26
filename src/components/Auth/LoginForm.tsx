@@ -1,30 +1,43 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { api, setAuthToken } from '../../lib/api'; // Adjust path
 
 export default function LoginForm() {
-  const { signIn, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    
-    const result = await signIn(email, password);
-    if (!result.success) {
-      setError(result.error || 'Login failed');
-    }
-  };
 
   const demoAccounts = [
     { role: 'Director', email: 'director@carhire.com', password: 'password123' },
     { role: 'Staff', email: 'staff@carhire.com', password: 'password123' },
     { role: 'Owner', email: 'owner@carhire.com', password: 'password123' },
-    { role: 'Client', email: 'client@carhire.com', password: 'password123' }
+    { role: 'Client', email: 'client@carhire.com', password: 'password123' },
   ];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      
+      // Save JWT token
+      setAuthToken(response.data.token);
+
+      // Optionally store user info
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+
+      // Redirect to dashboard/home
+      window.location.href = '/dashboard';
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDemoLogin = (demoEmail: string, demoPassword: string) => {
     setEmail(demoEmail);
@@ -36,11 +49,7 @@ export default function LoginForm() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <img 
-              src="/img/logo.jpg" 
-              alt="CarHire Pro Logo" 
-              className="h-20 w-auto rounded-lg"
-            />
+            <img src="/img/logo.jpg" alt="CarHire Pro Logo" className="h-20 w-auto rounded-lg" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900">Shilaabo Car Hire</h2>
           <p className="mt-1 text-sm text-gray-600">Management System</p>
