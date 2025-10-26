@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Automatically use localhost in dev and /api in production
+const baseURL =
+  import.meta.env.MODE === 'development'
+    ? 'http://localhost:5000/api'
+    : '/api';
 
 export const api = axios.create({
   baseURL,
@@ -10,7 +14,7 @@ export const api = axios.create({
   withCredentials: true, // Include credentials (cookies) with requests
 });
 
-// Request interceptor to add auth token to requests
+// Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -19,17 +23,14 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle errors
+// Response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized access
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
@@ -37,7 +38,7 @@ api.interceptors.response.use(
   }
 );
 
-export function setAuthToken(token: string | null) {
+export function setAuthToken(token) {
   if (token) {
     localStorage.setItem('token', token);
     api.defaults.headers.common.Authorization = `Bearer ${token}`;
@@ -46,5 +47,3 @@ export function setAuthToken(token: string | null) {
     delete api.defaults.headers.common.Authorization;
   }
 }
-
-
