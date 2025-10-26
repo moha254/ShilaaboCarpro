@@ -3,13 +3,13 @@ dotenv.config(); // must come first!
 
 import express from 'express';
 import cors from 'cors';
-import connectDB from './config/db.js';
-import { createDemoUsers } from './controllers/authController.js';
-import authRoutes from './routes/authRoutes.js';
-import carRoutes from './routes/carRoutes.js';
-import clientRoutes from './routes/clientRoutes.js';
-import vehicleRoutes from './routes/vehicleRoutes.js';
-import bookingRoutes from './routes/bookingRoutes.js';
+import connectDB from './src/config/db.js';
+import { createDemoUsers } from './src/controllers/authController.js';
+import authRoutes from './src/routes/authRoutes.js';
+import carRoutes from './src/routes/carRoutes.js';
+import clientRoutes from './src/routes/clientRoutes.js';
+import vehicleRoutes from './src/routes/vehicleRoutes.js';
+import bookingRoutes from './src/routes/bookingRoutes.js';
 
 connectDB(); // uses MONGO_URI from .env
 createDemoUsers(); // create demo users on startup
