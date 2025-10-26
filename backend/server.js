@@ -3,6 +3,7 @@ dotenv.config(); // must come first!
 
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import connectDB from './src/config/db.js';
 import { createDemoUsers } from './src/controllers/authController.js';
 import authRoutes from './src/routes/authRoutes.js';
@@ -11,21 +12,22 @@ import clientRoutes from './src/routes/clientRoutes.js';
 import vehicleRoutes from './src/routes/vehicleRoutes.js';
 import bookingRoutes from './src/routes/bookingRoutes.js';
 
+// Connect to MongoDB
 connectDB(); // uses MONGO_URI from .env
 createDemoUsers(); // create demo users on startup
 
 const app = express();
 
-// Configure CORS with local dev and production frontend domains
+// Middleware
 const corsOptions = {
   origin: [
     'http://localhost:5173',       // Vite dev server
     'http://localhost:3000',       // React dev server
-    'http://127.0.0.1:5173',      // Alternative localhost
-    'http://127.0.0.1:3000',      // Alternative localhost
-    'https://shilaabo-carpro-vpar.vercel.app', // ✅ Production frontend
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000',
+    'https://shilaabo-carpro-vpar.vercel.app', // Production frontend
   ],
-  credentials: true, // Allow cookies / Authorization headers
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
@@ -33,15 +35,21 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Test route
-app.get('/', (req, res) => res.send('🚗 Car Hire Management API Running!'));
-
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/cars', carRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/bookings', bookingRoutes);
+
+// Serve frontend in production
+const __dirname = path.resolve();
+app.use(express.static(path.join(__dirname, 'dist')));
+
+app.get('*', (req, res) => {
+  // Serve React index.html for any unknown routes (frontend handles routing)
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
 
 // Start server
 const PORT = process.env.PORT || 5000;
