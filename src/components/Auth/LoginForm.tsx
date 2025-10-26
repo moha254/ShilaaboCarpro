@@ -1,39 +1,43 @@
-import React, { useState } from 'react';
-import { Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { api, setAuthToken } from '../../lib/api'; // Adjust path
+import React, { useState } from "react";
+import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { api, setAuthToken } from "../../lib/api"; // Make sure path is correct
+import { useNavigate } from "react-router-dom";
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   const demoAccounts = [
-    { role: 'Director', email: 'director@carhire.com', password: 'password123' },
-    { role: 'Staff', email: 'staff@carhire.com', password: 'password123' },
-    { role: 'Owner', email: 'owner@carhire.com', password: 'password123' },
-    { role: 'Client', email: 'client@carhire.com', password: 'password123' },
+    { role: "Director", email: "director@carhire.com", password: "password123" },
+    { role: "Staff", email: "staff@carhire.com", password: "password123" },
+    { role: "Owner", email: "owner@carhire.com", password: "password123" },
+    { role: "Client", email: "client@carhire.com", password: "password123" },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
-      const response = await api.post('/auth/login', { email, password });
-      
+      const response = await api.post("/auth/login", { email, password });
+
       // Save JWT token
       setAuthToken(response.data.token);
 
-      // Optionally store user info
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      // Store user info
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
-      // Redirect to dashboard/home
-      window.location.href = '/dashboard';
+      // Redirect to dashboard
+      navigate("/dashboard");
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+      console.error("Login error:", err);
+      setError(err.response?.data?.message || "Login failed. Check console.");
     } finally {
       setLoading(false);
     }
@@ -77,7 +81,6 @@ export default function LoginForm() {
                 </div>
                 <input
                   id="email"
-                  name="email"
                   type="email"
                   autoComplete="email"
                   required
@@ -99,8 +102,7 @@ export default function LoginForm() {
                 </div>
                 <input
                   id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
                   value={password}
@@ -113,11 +115,7 @@ export default function LoginForm() {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-500" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-500" />
-                  )}
+                  {showPassword ? <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-500" /> : <Eye className="h-5 w-5 text-gray-400 hover:text-gray-500" />}
                 </button>
               </div>
             </div>
@@ -129,7 +127,7 @@ export default function LoginForm() {
               disabled={loading}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed h-10"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </div>
         </form>
@@ -156,9 +154,7 @@ export default function LoginForm() {
               </button>
             ))}
           </div>
-          <p className="mt-2 text-center text-xs text-gray-500">
-            Click any demo account to auto-fill credentials
-          </p>
+          <p className="mt-2 text-center text-xs text-gray-500">Click any demo account to auto-fill credentials</p>
         </div>
       </div>
     </div>
