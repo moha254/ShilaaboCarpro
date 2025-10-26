@@ -18,7 +18,8 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("token");
-    if (token && config.headers) {
+    if (token) {
+      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -37,9 +38,11 @@ api.interceptors.response.use(
       const status = error.response.status;
       if (status === 401) {
         localStorage.removeItem("token");
+        localStorage.removeItem("user");
         window.location.href = "/login";
       } else if (status === 403) {
         console.warn("Access denied: insufficient permissions");
+        alert("Access denied: insufficient permissions");
       }
     }
     return Promise.reject(error);
